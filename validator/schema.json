@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+      "device_id": { "type": "string" },
+      "temperature": { "type": "number" },
+      "humidity": { "type": "number" },
+      "event_timestamp": { "type": "number" }
+    },
+    "required": ["device_id", "temperature", "humidity", "event_timestamp"]
+  }  
