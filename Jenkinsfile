@@ -7,14 +7,14 @@ pipeline {
 
     stages {
 
-        stage('Utworzenie virtualenv') {
+        stage('Python venv') {
             steps {
                 sh 'python3 -m venv $VENV_DIR'
                 sh '. $VENV_DIR/bin/activate && pip install --upgrade pip'
             }
         }
 
-        stage('Instalacja zależności') {
+        stage('Install requirements') {
             steps {
                 sh '. $VENV_DIR/bin/activate && pip install -r producer/requirements.txt'
                 sh '. $VENV_DIR/bin/activate && pip install -r validator/requirements.txt'
@@ -22,12 +22,16 @@ pipeline {
             }
         }
 
-        stage('Build Docker (opcjonalnie)') {
+        stage('Build Docker (jeśli dostępny)') {
+            when {
+                expression {
+                    return fileExists('docker/docker-compose.yml') && sh(script: 'command -v docker-compose', returnStatus: true) == 0
+                }
+            }
             steps {
                 sh 'docker-compose -f docker/docker-compose.yml build'
             }
         }
-
     }
 
     post {
