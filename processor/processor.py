@@ -32,20 +32,24 @@ error_consumer = KafkaConsumer(
 print("🧩 Processor uruchomiony...")
 
 while True:
-    for msg in iot_consumer:
-        d = msg.value
-        print(f"📥 Zapisuję dane IoT: {d}")
-        cursor.execute("""
-            INSERT INTO iot_data (device_id, temperature, humidity, event_timestamp)
-            VALUES (%s, %s, %s, to_timestamp(%s / 1000.0))
-        """, (d["device_id"], d["temperature"], d["humidity"], d["event_timestamp"]))
-        conn.commit()
+    iot_msgs = iot_consumer.poll(timeout_ms=1000)
+    for tp, messages in iot_msgs.items():
+        for msg in messages:
+            d = msg.value
+            print(f"📥 Zapisuję dane IoT: {d}")
+            cursor.execute(
+                "INSERT INTO iot_data (device_id, temperature, humidity, event_timestamp) VALUES (%s, %s, %s, to_timestamp(%s / 1000.0))",
+                (d["device_id"], d["temperature"], d["humidity"], d["event_timestamp"])
+            )
+            conn.commit()
 
-    for msg in error_consumer:
-        e = msg.value
-        print(f"❗ Zapisuję błąd: {e}")
-        cursor.execute("""
-            INSERT INTO error_log (device_id, error_message, event_timestamp)
-            VALUES (%s, %s, to_timestamp(%s / 1000.0))
-        """, (e["device_id"], e["error_message"], e["event_timestamp"]))
-        conn.commit()
+    error_msgs = error_consumer.poll(timeout_ms=1000)
+    for tp, messages in error_msgs.items():
+        for msg in messages:
+            e = msg.value
+            print(f"❗ Zapisuję błąd: {e}")
+            cursor.execute(
+                "INSERT INTO error_log (device_id, error_message, event_timestamp) VALUES (%s, %s, to_timestamp(%s / 1000.0))",
+                (e["device_id"], e["error_message"], e["event_timestamp"])
+            )
+            conn.commit()
