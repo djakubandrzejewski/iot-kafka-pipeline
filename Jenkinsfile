@@ -7,12 +7,6 @@ pipeline {
 
     stages {
 
-        stage('Klonowanie repozytorium') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Utworzenie virtualenv') {
             steps {
                 sh 'python3 -m venv $VENV_DIR'
@@ -34,7 +28,6 @@ pipeline {
             }
         }
 
-        // Można dodać kolejne etapy: testy, lint, deploy
     }
 
     post {
